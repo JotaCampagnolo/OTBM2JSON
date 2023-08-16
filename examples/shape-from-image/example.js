@@ -12,17 +12,24 @@ const mapData = otbm2json.read("grass.otbm");
 
 // Asign a tileId from a specific color:
 function tileByColor(hexColor) {
-  if(hexColor == 'a2e8ff') {
-    return 105;
+  if(hexColor == '3300ccff') {
+    return 105; // Water
   }
-  else if(hexColor == 'b5e61dff') {
-    return 1111;
+  else if(hexColor == 'cc00ff') {
+    return 1111; // Grass
+  }
+  else if(hexColor == 'ffcc99ff') {
+    return 1111; // Sand
+  }
+  else if(hexColor == 'ffffffff') {
+    return 1111; // Snow
   }
   else {
-    return 105;
+    return 105; // Water
   }
 }
 
+// Maps the shape of the map from a image:
 function shapeMapFromImg() {
 
   return new Promise(async (resolve) => {
@@ -30,13 +37,13 @@ function shapeMapFromImg() {
     let matrix = [];
     
     // Read the shape image and map items to coordinates:
-    await Jimp.read('./shape.bmp')
+    await Jimp.read('./shape-nostalgia.bmp')
     .then((image) => {
       
       for (let i = 0; i < image.bitmap.width; i++) {
         matrix[i] = [];
         for (let j = 0; j < image.bitmap.height; j++) {
-            matrix[i][j] = "Water";
+            matrix[i][j] = 105;
         }
       }
 
@@ -45,7 +52,7 @@ function shapeMapFromImg() {
 
         // Asign a item to the coordinate:
         matrix[x][y] = tileByColor(this.getPixelColor(x,y).toString(16));
-        // console.log(x, y, this.getPixelColor(x,y).toString(16));
+        console.log(x, y, this.getPixelColor(x,y).toString(16));
 
       });
     })
@@ -60,6 +67,7 @@ function shapeMapFromImg() {
 
 }
 
+// Apply the tiles mapped from the shape image on the map itself:
 function applyTiles(shapeMap) {
 
   // Go over all nodes
@@ -76,8 +84,9 @@ function applyTiles(shapeMap) {
         // Skip anything that is not a tile (e.g. house tiles)
         if(x.type !== otbm2json.HEADERS.OTBM_TILE) return; 
   
-        x.tileid = shapeMap[x.x-239][x.y-246];
-        console.log(x);
+        // ORIGINAL OTBM MAP MUST BE FILLED WITH WATER
+        x.tileid = shapeMap[x.x][x.y];
+        // console.log(x);
         
       });
   
@@ -89,7 +98,7 @@ function applyTiles(shapeMap) {
 
 async function execute(){
 
-  console.log("Iniciou...");
+  console.log("Starting process...");
 
   const shapeMap = await shapeMapFromImg();
 
@@ -98,7 +107,7 @@ async function execute(){
   // Write the output to OTBM using the library
   otbm2json.write("forest.otbm", mapData);
 
-  console.log("Terminou...");
+  console.log("Process finished...");
 
 }
 
